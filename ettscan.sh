@@ -4,20 +4,26 @@
 ## INFO GATHERING
 echo "What is your target IP: "
 read IP
+echo " " 
 echo "What is your target name: "
 read SITE
 echo " " 
 
 
+echo "$IP $SITE" >> /etc/hosts 
+
+
 ## MAKE SITE FOLDER
-DIRECTORY="/enter/path/here"
+DIRECTORY="/ENTER/PATH/HERE"
 site_DIRECTORY="$DIRECTORY/$SITE"
 
 if [ -d "$site_DIRECTORY" ]; then
     echo "$site_DIRECTORY is present"
+    echo " " 
 else
     echo "Making $site_DIRECTORY."
     mkdir "$site_DIRECTORY"
+    echo " " 
 fi
 
 
@@ -46,18 +52,25 @@ port_list=$(echo "$open_ports" | tr '\n' ',' | sed 's/,$//')
 echo " " 
 echo "Detailed NMAP Scan is taking place on open ports: $port_list"
 echo " " 
-nmap -p"$port_list" -sV -sC -Pn -n --disable-arp-ping -oN $site_DIRECTORY/detail_$SITE.md $IP
+nmap -p"$port_list" -A -Pn -n --disable-arp-ping -oN $site_DIRECTORY/detail_$SITE.md $IP
 
 
 ## INITIAL DIRECTORY SCAN
 echo " " 
 echo "Directory scan is starting."
 echo " " 
-feroxbuster -u http://$SITE.htb -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -s 200 --output $site_DIRECTORY/dir_$SITE -t 100
+feroxbuster -u http://$SITE.htb -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -s 200 --output $site_DIRECTORY/dir_$SITE.json -t 100
+
+
+## INITAIL Subdomain FUZZING
+echo " " 
+echo "Subdomain fuzzing is starting."
+echo " " 
+ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -u http://FUZZ.$SITE.htb -mc 200 -o $site_DIRECTORY/subdom_$SITE.json -t 100
 
 
 ## INITAIL HOST HEADER FUZZING
 echo " " 
-echo "Header Fuzzing is starting."
+echo "Header fuzzing is starting."
 echo " " 
-ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -u http://$SITE.htb -H "Host: FUZZ.$SITE.htb" -mc 200 -o $site_DIRECTORY/headers_$SITE -t 100
+ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -u http://$SITE.htb -H "Host: FUZZ.$SITE.htb" -mc 200 -o $site_DIRECTORY/headers_$SITE,json -t 100
