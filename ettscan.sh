@@ -9,9 +9,7 @@ echo "What is your target name: "
 read SITE
 echo " " 
 
-
-echo "$IP $SITE" >> /etc/hosts 
-
+echo "$IP $SITE.htb" >> /etc/hosts 
 
 ## MAKE SITE FOLDER
 DIRECTORY="/ENTER/PATH/HERE"
@@ -59,8 +57,7 @@ nmap -p"$port_list" -A -Pn -n --disable-arp-ping -oN $site_DIRECTORY/detail_$SIT
 echo " " 
 echo "Directory scan is starting."
 echo " " 
-feroxbuster -u http://$SITE.htb -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -s 200 --output $site_DIRECTORY/dir_$SITE.json -t 100
-
+feroxbuster -u http://$SITE.htb -w /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-med.txt -s 200 --output $site_DIRECTORY/dir_$SITE.json -t 100
 
 ## INITAIL Subdomain FUZZING
 echo " " 
@@ -68,9 +65,8 @@ echo "Subdomain fuzzing is starting."
 echo " " 
 ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -u http://FUZZ.$SITE.htb -mc 200 -o $site_DIRECTORY/subdom_$SITE.json -t 100
 
-
 ## INITAIL HOST HEADER FUZZING
 echo " " 
 echo "Header fuzzing is starting."
 echo " " 
-ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -u http://$SITE.htb -H "Host: FUZZ.$SITE.htb" -mc 200 -o $site_DIRECTORY/headers_$SITE,json -t 100
+ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -u http://$SITE.htb -H "Host: FUZZ.$SITE.htb" -mc 200 -o $site_DIRECTORY/headers_$SITE.json -t 100
